@@ -18,8 +18,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -80,5 +83,25 @@ public class FileService {
       fileNames.add("Error reading ZIP contents.");
     }
     return fileNames;
+  }
+
+  public File findZipInDirectory(String dirPath) {
+    File dir = new File(dirPath);
+    if (!dir.exists() || !dir.isDirectory()) return null;
+
+    File[] zipFiles = dir.listFiles((d, name) -> name.endsWith(".zip"));
+    if (zipFiles == null || zipFiles.length == 0) return null;
+
+    return Arrays.stream(zipFiles)
+        .max(Comparator.comparingLong(File::lastModified))
+        .orElse(null);
+  }
+
+  public File convertToFile(MultipartFile multipartFile) throws IOException {
+    File convFile = File.createTempFile("dwca_to_dwcdp_", "_" + multipartFile.getOriginalFilename());
+    try (FileOutputStream fos = new FileOutputStream(convFile)) {
+      fos.write(multipartFile.getBytes());
+    }
+    return convFile;
   }
 }
