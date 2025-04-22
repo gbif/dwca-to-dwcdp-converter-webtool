@@ -16,12 +16,16 @@ package org.gbif.dwcatodwcdp.converter.service;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 @Service
-public class FileValidator {
+public class FileService {
 
   public boolean isValidDarwinCoreArchive(MultipartFile file) {
     if (file.isEmpty() || !file.getOriginalFilename().endsWith(".zip")) {
@@ -45,4 +49,36 @@ public class FileValidator {
     }
   }
 
+  public List<String> listFilesInZip(MultipartFile file) {
+    List<String> fileNames = new ArrayList<>();
+    try (ZipInputStream zis = new ZipInputStream(file.getInputStream())) {
+      ZipEntry entry;
+      while ((entry = zis.getNextEntry()) != null) {
+        if (!entry.isDirectory()) {
+          fileNames.add(entry.getName());
+        }
+      }
+    } catch (IOException e) {
+      fileNames.add("Error reading ZIP contents.");
+    }
+    return fileNames;
+  }
+
+  public List<String> listFilesInZip(File file) {
+    List<String> fileNames = new ArrayList<>();
+    try (FileInputStream fis = new FileInputStream(file);
+         ZipInputStream zis = new ZipInputStream(fis)) {
+
+      ZipEntry entry;
+      while ((entry = zis.getNextEntry()) != null) {
+        if (!entry.isDirectory()) {
+          fileNames.add(entry.getName());
+        }
+      }
+
+    } catch (IOException e) {
+      fileNames.add("Error reading ZIP contents.");
+    }
+    return fileNames;
+  }
 }

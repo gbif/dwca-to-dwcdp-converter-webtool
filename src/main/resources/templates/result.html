@@ -5,7 +5,27 @@
 </head>
 <body>
 <h2>Processing Result</h2>
-<p th:text="${result}">Result will appear here</p>
-<a href="/">Back to Upload</a>
+<p th:text="${dwcaResult}">Result goes here</p>
+
+<div th:if="${dwcaFiles}">
+    <h3>Files in the DwC Archive:</h3>
+    <ul>
+        <li th:each="file : ${dwcaFiles}" th:text="${file}">filename.txt</li>
+    </ul>
+</div>
+
+<div>
+    <h3>Files in DwC DP:</h3>
+    <ul>
+        <li th:each="file : ${dwcDpFiles}" th:text="${file}">filename.txt</li>
+    </ul>
+    <a href="/download">
+        <button>Download Archive</button>
+    </a>
+</div>
+
+<div>
+    <a href="/">Back to Upload</a>
+</div>
 </body>
 </html>
