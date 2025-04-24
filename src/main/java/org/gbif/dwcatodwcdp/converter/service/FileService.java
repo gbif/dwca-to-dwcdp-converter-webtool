@@ -69,19 +69,23 @@ public class FileService {
 
   public List<String> listFilesInZip(File file) {
     List<String> fileNames = new ArrayList<>();
-    try (FileInputStream fis = new FileInputStream(file);
-         ZipInputStream zis = new ZipInputStream(fis)) {
 
-      ZipEntry entry;
-      while ((entry = zis.getNextEntry()) != null) {
-        if (!entry.isDirectory()) {
-          fileNames.add(entry.getName());
+    if (file != null) {
+      try (FileInputStream fis = new FileInputStream(file);
+           ZipInputStream zis = new ZipInputStream(fis)) {
+
+        ZipEntry entry;
+        while ((entry = zis.getNextEntry()) != null) {
+          if (!entry.isDirectory()) {
+            fileNames.add(entry.getName());
+          }
         }
-      }
 
-    } catch (IOException e) {
-      fileNames.add("Error reading ZIP contents.");
+      } catch (IOException e) {
+        fileNames.add("Error reading ZIP contents.");
+      }
     }
+
     return fileNames;
   }
 

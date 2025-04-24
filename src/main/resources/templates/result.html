@@ -34,6 +34,36 @@
                     <a href="/download" class="btn btn-success">Download DwC DP</a>
                 </div>
             </div>
+
+            <div class="mt-4">
+                <h4>Mappings:</h4>
+
+                <div th:each="entry : ${mappings}">
+                    <h5 th:text="${entry.key}">Section Title</h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th scope="col">Index</th>
+                                <th scope="col">Default Value</th>
+                                <th scope="col">Field Name</th>
+                                <th scope="col">Field Type</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="mapping : ${entry.value}">
+                                <td th:text="${mapping.index}">Index</td>
+                                <td th:text="${mapping.defaultValue}">Default</td>
+                                <td th:text="${mapping.field.name}">Field Name</td>
+                                <td th:text="${mapping.field.type}">Field Type</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </div>
 </div>

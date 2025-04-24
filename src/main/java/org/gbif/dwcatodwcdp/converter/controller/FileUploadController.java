@@ -13,6 +13,7 @@
  */
 package org.gbif.dwcatodwcdp.converter.controller;
 
+import org.gbif.datapackage.DataPackageFieldMapping;
 import org.gbif.dwcatodwcdp.converter.DwcaToDwcDpConverter;
 import org.gbif.dwcatodwcdp.converter.service.FileService;
 
@@ -35,7 +36,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Controller
 public class FileUploadController {
@@ -50,6 +56,8 @@ public class FileUploadController {
   private String outputDirectoryStr;
   @Value("${converter.mappings}")
   private String mappingsDirectoryStr;
+  @Autowired
+  private ObjectMapper jacksonObjectMapper;
 
   @GetMapping("/")
   public String showUploadForm() {
@@ -84,6 +92,12 @@ public class FileUploadController {
       List<String> dwcDpFileList = fileService.listFilesInZip(dwcDpArchive);
 
       model.addAttribute("dwcDpFiles", dwcDpFileList);
+
+      File dwcdpArchive = fileService.findZipInDirectory(outputDirectoryStr);
+      String dwcdpFileName = dwcdpArchive.getName()
+          .replace(".zip", "");
+      Map<String, List<DataPackageFieldMapping>> mappings = readMappingFiles(new File(outputDirectory, "mappings-" + dwcdpFileName));
+      model.addAttribute("mappings", mappings);
     } catch (IOException e) {
       // TODO: process
       throw new RuntimeException(e);
@@ -108,5 +122,26 @@ public class FileUploadController {
         .contentType(MediaType.APPLICATION_OCTET_STREAM)
         .contentLength(zipFile.length())
         .body(resource);
+  }
+
+  private Map<String, List<DataPackageFieldMapping>> readMappingFiles(File directory) throws IOException {
+    Map<String, List<DataPackageFieldMapping>> result = new HashMap<>();
+
+    if (!directory.exists() || !directory.isDirectory()) {
+      throw new IllegalArgumentException("Invalid directory: " + directory.getAbsolutePath());
+    }
+
+    File[] files = directory.listFiles((dir, name) -> name.endsWith(".json"));
+    if (files == null) return result;
+
+    for (File file : files) {
+      // Use the filename (without .json) as the key
+      String key = file.getName().replaceFirst("[.][^.]+$", "");
+      List<DataPackageFieldMapping> value = jacksonObjectMapper.readValue(file, new TypeReference<>() {
+      });
+      result.put(key, value);
+    }
+
+    return result;
   }
 }
